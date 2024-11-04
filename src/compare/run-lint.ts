@@ -2,8 +2,11 @@ import {execSync} from "child_process";
 import fs from "fs";
 import chalk from 'chalk'
 import figures from 'figures'
+import path from "path";
 
 export const runESLintOnStagedFiles = async(files:string[], stagedFile:string) => {
+   const inputPath = stagedFile.replace('/eslint-issues.json', '')
+    console.error(inputPath, stagedFile)
     if (files.length === 0) {
         console.log(chalk.green('✨ No staged JavaScript or TypeScript files to compare to baseline with.'));
         return false;
@@ -13,13 +16,17 @@ export const runESLintOnStagedFiles = async(files:string[], stagedFile:string) =
 
     try {
         const rawOutput = execSync(eslintCommand, { maxBuffer: 1024 * 500 }).toString();
-
         const jsonOutput = rawOutput
             .split('\n')
             .filter(line => line.trim().startsWith('[') || line.trim().startsWith('{'))
             .join('\n');
 
-        fs.writeFileSync(stagedFile, jsonOutput);
+        const withRelativePaths = JSON.parse(jsonOutput).map((screen)=>({
+            ...screen,
+            filePath: path.relative(inputPath,screen.filePath),
+        }))
+
+        fs.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
         console.log(chalk.cyan.bold(`✨ESLint issues saved to: ${stagedFile}`));
         return true;
     } catch (error) {

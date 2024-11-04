@@ -90,7 +90,11 @@ ${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes}
     let allIssues = [];
     for (const batch of batches2) {
       const batchIssues = await runESLintBatch(batch);
-      allIssues = allIssues.concat(batchIssues);
+      const relativeIssues = batchIssues.map((issue) => ({
+        ...issue,
+        filePath: path3.relative(inputPath, issue.filePath)
+      }));
+      allIssues = allIssues.concat(relativeIssues);
     }
     fs.writeFileSync(outputFile2, JSON.stringify(allIssues, null, 2));
     console.log(`ESLint issues saved to ${outputFile2}`);
@@ -112,7 +116,10 @@ import { execSync as execSync2 } from "child_process";
 import fs2 from "fs";
 import chalk2 from "chalk";
 import figures2 from "figures";
+import path4 from "path";
 var runESLintOnStagedFiles = async (files2, stagedFile) => {
+  const inputPath = stagedFile.replace("/eslint-issues.json", "");
+  console.error(inputPath, stagedFile);
   if (files2.length === 0) {
     console.log(chalk2.green("\u2728 No staged JavaScript or TypeScript files to compare to baseline with."));
     return false;
@@ -121,7 +128,12 @@ var runESLintOnStagedFiles = async (files2, stagedFile) => {
   try {
     const rawOutput = execSync2(eslintCommand, { maxBuffer: 1024 * 500 }).toString();
     const jsonOutput = rawOutput.split("\n").filter((line) => line.trim().startsWith("[") || line.trim().startsWith("{")).join("\n");
-    fs2.writeFileSync(stagedFile, jsonOutput);
+    const withRelativePaths = JSON.parse(jsonOutput).map((screen) => ({
+      ...screen,
+      filePath: path4.relative(inputPath, screen.filePath)
+    }));
+    console.error(withRelativePaths);
+    fs2.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
     console.log(chalk2.cyan.bold(`\u2728ESLint issues saved to: ${stagedFile}`));
     return true;
   } catch (error) {
@@ -161,7 +173,7 @@ var compareWithBaseline = async (stagedFile, baselineFile) => {
   if (newOrIncreasedIssues.length > 0) {
     console.log(
       chalk3.redBright.white.italic(`
-${figures3.infinity} ${package_default.version < 1 ? "Beta" : ""} ${package_default.version} by ${package_default.author} 
+${figures3.infinity} BETA ${package_default.version} by ${package_default.author} 
 `),
       chalk3.redBright.bgRed(`
 ${figures3.cross} Oh no, we have a problem. You've introduced some new ESLint errors:
@@ -183,7 +195,7 @@ ${figures3.tick} No new ESLint issues introduced.`));
 };
 
 // src/cli/commander.ts
-import path4 from "path";
+import path5 from "path";
 var program = new Command();
 program.version(package_default.version).description(package_default.description);
 program.command("generate").description("Generates the baseline eslint rules. Run this only once.").option("-o, --output <output>", "Specify the output file path").action(async (name, options) => {
@@ -192,8 +204,8 @@ program.command("generate").description("Generates the baseline eslint rules. Ru
 });
 program.command("compare").description("Compares staged with baseline.json.").option("-o, --output <output>", "Specify the output file path").option("-i, --input <input>", "Specify the input file path").action(async (_, options) => {
   const currentDir = process.cwd();
-  const baselineFile = options.input ?? path4.join(currentDir, "eslint-baseline.json");
-  const stageFile = options.output ?? path4.join(currentDir, "eslint-issues.json");
+  const baselineFile = options.input ?? path5.join(currentDir, "eslint-baseline.json");
+  const stageFile = options.output ?? path5.join(currentDir, "eslint-issues.json");
   const stagedFiles = getStagedFiles();
   if (await runESLintOnStagedFiles(stagedFiles, stageFile)) {
     await compareWithBaseline(stageFile, baselineFile);

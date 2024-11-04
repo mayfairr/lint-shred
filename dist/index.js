@@ -112,7 +112,11 @@ ${import_figures.default.warning} Generating in Directory:${inputPath} <|> ${fil
     let allIssues = [];
     for (const batch of batches2) {
       const batchIssues = await runESLintBatch(batch);
-      allIssues = allIssues.concat(batchIssues);
+      const relativeIssues = batchIssues.map((issue) => ({
+        ...issue,
+        filePath: import_path2.default.relative(inputPath, issue.filePath)
+      }));
+      allIssues = allIssues.concat(relativeIssues);
     }
     import_fs.default.writeFileSync(outputFile2, JSON.stringify(allIssues, null, 2));
     console.log(`ESLint issues saved to ${outputFile2}`);
@@ -134,7 +138,10 @@ var import_child_process3 = require("child_process");
 var import_fs2 = __toESM(require("fs"));
 var import_chalk2 = __toESM(require("chalk"));
 var import_figures2 = __toESM(require("figures"));
+var import_path3 = __toESM(require("path"));
 var runESLintOnStagedFiles = async (files2, stagedFile) => {
+  const inputPath = stagedFile.replace("/eslint-issues.json", "");
+  console.error(inputPath, stagedFile);
   if (files2.length === 0) {
     console.log(import_chalk2.default.green("\u2728 No staged JavaScript or TypeScript files to compare to baseline with."));
     return false;
@@ -143,7 +150,12 @@ var runESLintOnStagedFiles = async (files2, stagedFile) => {
   try {
     const rawOutput = (0, import_child_process3.execSync)(eslintCommand, { maxBuffer: 1024 * 500 }).toString();
     const jsonOutput = rawOutput.split("\n").filter((line) => line.trim().startsWith("[") || line.trim().startsWith("{")).join("\n");
-    import_fs2.default.writeFileSync(stagedFile, jsonOutput);
+    const withRelativePaths = JSON.parse(jsonOutput).map((screen) => ({
+      ...screen,
+      filePath: import_path3.default.relative(inputPath, screen.filePath)
+    }));
+    console.error(withRelativePaths);
+    import_fs2.default.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
     console.log(import_chalk2.default.cyan.bold(`\u2728ESLint issues saved to: ${stagedFile}`));
     return true;
   } catch (error) {
@@ -183,7 +195,7 @@ var compareWithBaseline = async (stagedFile, baselineFile) => {
   if (newOrIncreasedIssues.length > 0) {
     console.log(
       import_chalk3.default.redBright.white.italic(`
-${import_figures3.default.infinity} ${package_default.version < 1 ? "Beta" : ""} ${package_default.version} by ${package_default.author} 
+${import_figures3.default.infinity} BETA ${package_default.version} by ${package_default.author} 
 `),
       import_chalk3.default.redBright.bgRed(`
 ${import_figures3.default.cross} Oh no, we have a problem. You've introduced some new ESLint errors:
@@ -205,7 +217,7 @@ ${import_figures3.default.tick} No new ESLint issues introduced.`));
 };
 
 // src/cli/commander.ts
-var import_path3 = __toESM(require("path"));
+var import_path4 = __toESM(require("path"));
 var program = new import_commander.Command();
 program.version(package_default.version).description(package_default.description);
 program.command("generate").description("Generates the baseline eslint rules. Run this only once.").option("-o, --output <output>", "Specify the output file path").action(async (name, options) => {
@@ -214,8 +226,8 @@ program.command("generate").description("Generates the baseline eslint rules. Ru
 });
 program.command("compare").description("Compares staged with baseline.json.").option("-o, --output <output>", "Specify the output file path").option("-i, --input <input>", "Specify the input file path").action(async (_, options) => {
   const currentDir = process.cwd();
-  const baselineFile = options.input ?? import_path3.default.join(currentDir, "eslint-baseline.json");
-  const stageFile = options.output ?? import_path3.default.join(currentDir, "eslint-issues.json");
+  const baselineFile = options.input ?? import_path4.default.join(currentDir, "eslint-baseline.json");
+  const stageFile = options.output ?? import_path4.default.join(currentDir, "eslint-issues.json");
   const stagedFiles = getStagedFiles();
   if (await runESLintOnStagedFiles(stagedFiles, stageFile)) {
     await compareWithBaseline(stageFile, baselineFile);

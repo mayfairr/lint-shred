@@ -35,7 +35,7 @@ export const compareWithBaseline = async (stagedFile:string, baselineFile:string
 
     if (newOrIncreasedIssues.length > 0) {
         console.log(
-            chalk.redBright.white.italic(`\n${figures.infinity} ${PackageJson.version < 1 ? "Beta":''} ${PackageJson.version} by ${PackageJson.author} \n`),
+            chalk.redBright.white.italic(`\n${figures.infinity} BETA ${PackageJson.version} by ${PackageJson.author} \n`),
             chalk.redBright.bgRed(`\n${figures.cross} Oh no, we have a problem. You've introduced some new ESLint errors:\n`),
         );
 
