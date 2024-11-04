@@ -1,12 +1,11 @@
 {
   "name": "lint-shred",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "scripts": {
     "test": "echo \"Sample Tests\"",
-
     "build": "tsup"
   },
   "keywords": [
