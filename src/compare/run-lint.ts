@@ -27,7 +27,7 @@ export const runESLintOnStagedFiles = async(files:string[], stagedFile:string) =
         }))
 
         fs.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
-        console.log(chalk.cyan.bold(`✨ESLint issues saved to: ${stagedFile}`));
+        console.log(chalk.cyan.bold(`✨ ESLint issues saved to: ${stagedFile}`));
         return true;
     } catch (error) {
         console.error(chalk.red(`${figures.cross} ESLint failed to run on staged files. (This usually happens when there is JS Error on your file. Please verify this is not the case) \n`), error);

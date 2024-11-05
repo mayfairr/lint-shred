@@ -4,6 +4,7 @@ import figures from "figures";
 import PackageJson from '../../package.json'
 
 export const compareWithBaseline = async (stagedFile:string, baselineFile:string) => {
+    console.log(chalk.redBright.white.italic(`\n${figures.infinity} [BETA] ${chalk.bold(`lint-shred@${PackageJson.version}`)} by ${chalk.underline(PackageJson.author)} \n`))
     if (!fs.existsSync(stagedFile) || !fs.existsSync(baselineFile)) {
         console.error(chalk.red(`${figures.cross} Baseline or staged ESLint output not found.`));
         return;
@@ -35,7 +36,6 @@ export const compareWithBaseline = async (stagedFile:string, baselineFile:string
 
     if (newOrIncreasedIssues.length > 0) {
         console.log(
-            chalk.redBright.white.italic(`\n${figures.infinity} BETA ${PackageJson.version} by ${PackageJson.author} \n`),
             chalk.redBright.bgRed(`\n${figures.cross} Oh no, we have a problem. You've introduced some new ESLint errors:\n`),
         );
 

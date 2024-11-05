@@ -6,7 +6,7 @@ import { Command } from "commander";
 // package.json
 var package_default = {
   name: "lint-shred",
-  version: "1.0.6",
+  version: "1.0.7",
   description: "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   main: "./dist/index.js",
   module: "./dist/index.mjs",
@@ -106,9 +106,9 @@ ${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes}
 
 // src/compare/get-staged.ts
 import { execSync } from "child_process";
-var getStagedFiles = () => {
+var getStagedFiles = (verbose) => {
   const stagedFiles = execSync("git diff --cached --name-only --diff-filter=ACM", { cwd: process.cwd() }).toString().split("\n").filter((file) => file.endsWith(".tsx") || file.endsWith(".ts") || file.endsWith(".js") || file.endsWith(".jsx"));
-  if (stagedFiles?.length) console.log(stagedFiles);
+  if (verbose) console.log(stagedFiles);
   return stagedFiles;
 };
 
@@ -134,7 +134,7 @@ var runESLintOnStagedFiles = async (files2, stagedFile) => {
       filePath: path2.relative(inputPath, screen.filePath)
     }));
     fs2.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
-    console.log(chalk2.cyan.bold(`\u2728ESLint issues saved to: ${stagedFile}`));
+    console.log(chalk2.cyan.bold(`\u2728 ESLint issues saved to: ${stagedFile}`));
     return true;
   } catch (error) {
     console.error(chalk2.red(`${figures2.cross} ESLint failed to run on staged files. (This usually happens when there is JS Error on your file. Please verify this is not the case) 
@@ -148,6 +148,9 @@ import fs3 from "fs";
 import chalk3 from "chalk";
 import figures3 from "figures";
 var compareWithBaseline = async (stagedFile, baselineFile) => {
+  console.log(chalk3.redBright.white.italic(`
+${figures3.infinity} [BETA] ${chalk3.bold(`lint-shred@${package_default.version}`)} by ${chalk3.underline(package_default.author)} 
+`));
   if (!fs3.existsSync(stagedFile) || !fs3.existsSync(baselineFile)) {
     console.error(chalk3.red(`${figures3.cross} Baseline or staged ESLint output not found.`));
     return;
@@ -172,9 +175,6 @@ var compareWithBaseline = async (stagedFile, baselineFile) => {
   }
   if (newOrIncreasedIssues.length > 0) {
     console.log(
-      chalk3.redBright.white.italic(`
-${figures3.infinity} BETA ${package_default.version} by ${package_default.author} 
-`),
       chalk3.redBright.bgRed(`
 ${figures3.cross} Oh no, we have a problem. You've introduced some new ESLint errors:
 `)
@@ -202,11 +202,11 @@ program.command("generate").description("Generates the baseline eslint rules. Ru
   const currentDir = process.cwd();
   await generateBaseline(currentDir, options.output, options.verbose);
 });
-program.command("compare").description("Compares staged with baseline.json.").option("-o, --output <output>", "Specify the output file path").option("-i, --input <input>", "Specify the input file path").action(async (_, options) => {
+program.command("compare").description("Compares staged with baseline.json.").option("-o, --output <output>", "Specify the output file path").option("-i, --input <input>", "Specify the input file path").option("-v, --verbose", "Verbose").action(async (_, options) => {
   const currentDir = process.cwd();
   const baselineFile = options.input ?? path3.join(currentDir, "eslint-baseline.json");
   const stageFile = options.output ?? path3.join(currentDir, "eslint-issues.json");
-  const stagedFiles = getStagedFiles();
+  const stagedFiles = getStagedFiles(options.verbose);
   if (await runESLintOnStagedFiles(stagedFiles, stageFile)) {
     await compareWithBaseline(stageFile, baselineFile);
   }
