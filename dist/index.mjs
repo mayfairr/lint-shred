@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // node_modules/tsup/assets/esm_shims.js
 import { fileURLToPath } from "url";
 import path from "path";
@@ -11,13 +13,17 @@ import { Command } from "commander";
 // package.json
 var package_default = {
   name: "lint-shred",
-  version: "1.0.0",
+  version: "1.0.3",
   description: "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   main: "./dist/index.js",
   module: "./dist/index.mjs",
   scripts: {
-    test: 'echo "Error: no test specified" && exit 1',
+    test: 'echo "Sample Tests"',
     build: "tsup"
+  },
+  type: "module",
+  bin: {
+    "lint-shred": "./dist/index.mjs"
   },
   keywords: [
     "typescript",
@@ -132,7 +138,6 @@ var runESLintOnStagedFiles = async (files2, stagedFile) => {
       ...screen,
       filePath: path4.relative(inputPath, screen.filePath)
     }));
-    console.error(withRelativePaths);
     fs2.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
     console.log(chalk2.cyan.bold(`\u2728ESLint issues saved to: ${stagedFile}`));
     return true;
