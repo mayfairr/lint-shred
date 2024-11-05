@@ -8,6 +8,9 @@
     "test": "echo \"Sample Tests\"",
     "build": "tsup"
   },
+  "bin": {
+    "lint-shred": "./dist/index.mjs"
+  },
   "keywords": [
     "typescript",
     "eslint",
