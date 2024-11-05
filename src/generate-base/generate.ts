@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { glob } from "glob";
+import fg from 'fast-glob'
 import chalk from "chalk";
 import figures from "figures";
 import { runESLintBatch } from "./batch-files";
@@ -10,7 +10,7 @@ const fileTypes = ['js', 'ts', 'tsx', 'jsx'].join(',');
 
 export const generateBaseline = async (inputPath:string, outputPath:string) => {
     const outputFile = path.join(outputPath ?? inputPath, 'eslint-baseline.json');
-    const files = glob.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: 'node_modules/**' });
+    const files = fg.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ['node_modules/**'] });
 
     console.log(chalk.magenta.underline.bold(`\n${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes} \n`));
     try {

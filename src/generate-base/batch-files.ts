@@ -1,11 +1,9 @@
 import { exec } from 'child_process';
-import path from 'path';
-import {glob} from 'glob';
+import fg from 'fast-glob';
 
-const outputFile = path.join(__dirname, 'eslint-baseline.json');
 const BATCH_SIZE = 100; // Adjust batch size based on memory constraints
 
-const files = glob.sync('../**/*.{js,ts,tsx,jsx}', { ignore: 'node_modules/**' });
+const files = fg.sync('../**/*.{js,ts,tsx,jsx}', { ignore: ['node_modules/**'] });
 
 export const runESLintBatch = (filesBatch:string[]) => {
   return new Promise(resolve => {
