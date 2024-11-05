@@ -1,19 +1,12 @@
 #!/usr/bin/env node
 
-// node_modules/tsup/assets/esm_shims.js
-import { fileURLToPath } from "url";
-import path from "path";
-var getFilename = () => fileURLToPath(import.meta.url);
-var getDirname = () => path.dirname(getFilename());
-var __dirname = /* @__PURE__ */ getDirname();
-
 // src/cli/commander.ts
 import { Command } from "commander";
 
 // package.json
 var package_default = {
   name: "lint-shred",
-  version: "1.0.3",
+  version: "1.0.4",
   description: "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   main: "./dist/index.js",
   module: "./dist/index.mjs",
@@ -36,6 +29,7 @@ var package_default = {
   dependencies: {
     chalk: "^5.3.0",
     commander: "^12.1.0",
+    "fast-glob": "^3.3.2",
     figures: "^6.1.0"
   },
   devDependencies: {
@@ -47,18 +41,16 @@ var package_default = {
 
 // src/generate-base/generate.ts
 import fs from "fs";
-import path3 from "path";
-import { glob as glob2 } from "glob";
+import path from "path";
+import fg2 from "fast-glob";
 import chalk from "chalk";
 import figures from "figures";
 
 // src/generate-base/batch-files.ts
 import { exec } from "child_process";
-import path2 from "path";
-import { glob } from "glob";
-var outputFile = path2.join(__dirname, "eslint-baseline.json");
+import fg from "fast-glob";
 var BATCH_SIZE = 100;
-var files = glob.sync("../**/*.{js,ts,tsx,jsx}", { ignore: "node_modules/**" });
+var files = fg.sync("../**/*.{js,ts,tsx,jsx}", { ignore: ["node_modules/**"] });
 var runESLintBatch = (filesBatch) => {
   return new Promise((resolve) => {
     exec(`npx eslint ${filesBatch.join(" ")} -f json`, { maxBuffer: 1024 * 5e3 }, (error, stdout, stderr) => {
@@ -83,8 +75,8 @@ for (let i = 0; i < files.length; i += BATCH_SIZE) {
 var BATCH_SIZE2 = 100;
 var fileTypes = ["js", "ts", "tsx", "jsx"].join(",");
 var generateBaseline = async (inputPath, outputPath) => {
-  const outputFile2 = path3.join(outputPath ?? inputPath, "eslint-baseline.json");
-  const files2 = glob2.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: "node_modules/**" });
+  const outputFile = path.join(outputPath ?? inputPath, "eslint-baseline.json");
+  const files2 = fg2.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ["node_modules/**"] });
   console.log(chalk.magenta.underline.bold(`
 ${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes} 
 `));
@@ -98,12 +90,12 @@ ${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes}
       const batchIssues = await runESLintBatch(batch);
       const relativeIssues = batchIssues.map((issue) => ({
         ...issue,
-        filePath: path3.relative(inputPath, issue.filePath)
+        filePath: path.relative(inputPath, issue.filePath)
       }));
       allIssues = allIssues.concat(relativeIssues);
     }
-    fs.writeFileSync(outputFile2, JSON.stringify(allIssues, null, 2));
-    console.log(`ESLint issues saved to ${outputFile2}`);
+    fs.writeFileSync(outputFile, JSON.stringify(allIssues, null, 2));
+    console.log(`ESLint issues saved to ${outputFile}`);
   } catch (error) {
     console.error("Error running ESLint in batches:", error);
   }
@@ -122,7 +114,7 @@ import { execSync as execSync2 } from "child_process";
 import fs2 from "fs";
 import chalk2 from "chalk";
 import figures2 from "figures";
-import path4 from "path";
+import path2 from "path";
 var runESLintOnStagedFiles = async (files2, stagedFile) => {
   const inputPath = stagedFile.replace("/eslint-issues.json", "");
   console.error(inputPath, stagedFile);
@@ -136,7 +128,7 @@ var runESLintOnStagedFiles = async (files2, stagedFile) => {
     const jsonOutput = rawOutput.split("\n").filter((line) => line.trim().startsWith("[") || line.trim().startsWith("{")).join("\n");
     const withRelativePaths = JSON.parse(jsonOutput).map((screen) => ({
       ...screen,
-      filePath: path4.relative(inputPath, screen.filePath)
+      filePath: path2.relative(inputPath, screen.filePath)
     }));
     fs2.writeFileSync(stagedFile, JSON.stringify(withRelativePaths));
     console.log(chalk2.cyan.bold(`\u2728ESLint issues saved to: ${stagedFile}`));
@@ -200,7 +192,7 @@ ${figures3.tick} No new ESLint issues introduced.`));
 };
 
 // src/cli/commander.ts
-import path5 from "path";
+import path3 from "path";
 var program = new Command();
 program.version(package_default.version).description(package_default.description);
 program.command("generate").description("Generates the baseline eslint rules. Run this only once.").option("-o, --output <output>", "Specify the output file path").action(async (name, options) => {
@@ -209,8 +201,8 @@ program.command("generate").description("Generates the baseline eslint rules. Ru
 });
 program.command("compare").description("Compares staged with baseline.json.").option("-o, --output <output>", "Specify the output file path").option("-i, --input <input>", "Specify the input file path").action(async (_, options) => {
   const currentDir = process.cwd();
-  const baselineFile = options.input ?? path5.join(currentDir, "eslint-baseline.json");
-  const stageFile = options.output ?? path5.join(currentDir, "eslint-issues.json");
+  const baselineFile = options.input ?? path3.join(currentDir, "eslint-baseline.json");
+  const stageFile = options.output ?? path3.join(currentDir, "eslint-issues.json");
   const stagedFiles = getStagedFiles();
   if (await runESLintOnStagedFiles(stagedFiles, stageFile)) {
     await compareWithBaseline(stageFile, baselineFile);

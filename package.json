@@ -23,6 +23,7 @@
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
     "figures": "^6.1.0"
   },
   "devDependencies": {
