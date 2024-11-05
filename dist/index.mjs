@@ -6,7 +6,7 @@ import { Command } from "commander";
 // package.json
 var package_default = {
   name: "lint-shred",
-  version: "1.0.4",
+  version: "1.0.5",
   description: "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   main: "./dist/index.js",
   module: "./dist/index.mjs",
@@ -50,9 +50,10 @@ import figures from "figures";
 import { exec } from "child_process";
 import fg from "fast-glob";
 var BATCH_SIZE = 100;
-var files = fg.sync("../**/*.{js,ts,tsx,jsx}", { ignore: ["node_modules/**"] });
+var files = fg.sync("../**/*.{js,ts,tsx,jsx}", { ignore: ["**/node_modules/**"] });
 var runESLintBatch = (filesBatch) => {
   return new Promise((resolve) => {
+    console.error(filesBatch);
     exec(`npx eslint ${filesBatch.join(" ")} -f json`, { maxBuffer: 1024 * 5e3 }, (error, stdout, stderr) => {
       if (stderr) console.warn("ESLint warnings:", stderr);
       try {
@@ -76,7 +77,7 @@ var BATCH_SIZE2 = 100;
 var fileTypes = ["js", "ts", "tsx", "jsx"].join(",");
 var generateBaseline = async (inputPath, outputPath) => {
   const outputFile = path.join(outputPath ?? inputPath, "eslint-baseline.json");
-  const files2 = fg2.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ["node_modules/**"] });
+  const files2 = fg2.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ["**/node_modules/**"] });
   console.log(chalk.magenta.underline.bold(`
 ${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes} 
 `));

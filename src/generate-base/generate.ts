@@ -8,9 +8,9 @@ import { runESLintBatch } from "./batch-files";
 const BATCH_SIZE = 100;
 const fileTypes = ['js', 'ts', 'tsx', 'jsx'].join(',');
 
-export const generateBaseline = async (inputPath:string, outputPath:string) => {
+export const generateBaseline = async (inputPath:string, outputPath:string, verbose?:boolean) => {
     const outputFile = path.join(outputPath ?? inputPath, 'eslint-baseline.json');
-    const files = fg.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ['node_modules/**'] });
+    const files = fg.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ['**/node_modules/**'] });
 
     console.log(chalk.magenta.underline.bold(`\n${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes} \n`));
     try {
@@ -22,7 +22,7 @@ export const generateBaseline = async (inputPath:string, outputPath:string) => {
         let allIssues = [];
 
         for (const batch of batches) {
-            const batchIssues = await runESLintBatch(batch);
+            const batchIssues = await runESLintBatch(batch, verbose);
 
             // Convert each issue's filePath to relative path
             const relativeIssues = batchIssues.map(issue => ({

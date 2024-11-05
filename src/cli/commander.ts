@@ -12,9 +12,10 @@ program.version(packageJson.version).description(packageJson.description);
 program.command("generate")
     .description("Generates the baseline eslint rules. Run this only once.")
     .option('-o, --output <output>', 'Specify the output file path')
+    .option('-v, --verbose <verbose>', 'Verbose')
     .action(async (name, options) => {
     const currentDir = process.cwd();
-    await generateBaseline(currentDir, options.output)
+    await generateBaseline(currentDir, options.output, options.verbose)
 });
 
 program
