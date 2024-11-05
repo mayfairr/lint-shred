@@ -6,7 +6,7 @@ import { Command } from "commander";
 // package.json
 var package_default = {
   name: "lint-shred",
-  version: "1.0.5",
+  version: "1.0.6",
   description: "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   main: "./dist/index.js",
   module: "./dist/index.mjs",
@@ -51,9 +51,11 @@ import { exec } from "child_process";
 import fg from "fast-glob";
 var BATCH_SIZE = 100;
 var files = fg.sync("../**/*.{js,ts,tsx,jsx}", { ignore: ["**/node_modules/**"] });
-var runESLintBatch = (filesBatch) => {
+var runESLintBatch = (filesBatch, verbose) => {
+  if (verbose) {
+    console.log(filesBatch);
+  }
   return new Promise((resolve) => {
-    console.error(filesBatch);
     exec(`npx eslint ${filesBatch.join(" ")} -f json`, { maxBuffer: 1024 * 5e3 }, (error, stdout, stderr) => {
       if (stderr) console.warn("ESLint warnings:", stderr);
       try {
@@ -75,7 +77,7 @@ for (let i = 0; i < files.length; i += BATCH_SIZE) {
 // src/generate-base/generate.ts
 var BATCH_SIZE2 = 100;
 var fileTypes = ["js", "ts", "tsx", "jsx"].join(",");
-var generateBaseline = async (inputPath, outputPath) => {
+var generateBaseline = async (inputPath, outputPath, verbose) => {
   const outputFile = path.join(outputPath ?? inputPath, "eslint-baseline.json");
   const files2 = fg2.sync(`${inputPath}/**/*.{${fileTypes}}`, { ignore: ["**/node_modules/**"] });
   console.log(chalk.magenta.underline.bold(`
@@ -88,7 +90,7 @@ ${figures.warning} Generating in Directory:${inputPath} <|> ${fileTypes}
     }
     let allIssues = [];
     for (const batch of batches2) {
-      const batchIssues = await runESLintBatch(batch);
+      const batchIssues = await runESLintBatch(batch, verbose);
       const relativeIssues = batchIssues.map((issue) => ({
         ...issue,
         filePath: path.relative(inputPath, issue.filePath)
@@ -196,9 +198,9 @@ ${figures3.tick} No new ESLint issues introduced.`));
 import path3 from "path";
 var program = new Command();
 program.version(package_default.version).description(package_default.description);
-program.command("generate").description("Generates the baseline eslint rules. Run this only once.").option("-o, --output <output>", "Specify the output file path").action(async (name, options) => {
+program.command("generate").description("Generates the baseline eslint rules. Run this only once.").option("-o, --output <output>", "Specify the output file path").option("-v, --verbose <verbose>", "Verbose").action(async (name, options) => {
   const currentDir = process.cwd();
-  await generateBaseline(currentDir, options.output);
+  await generateBaseline(currentDir, options.output, options.verbose);
 });
 program.command("compare").description("Compares staged with baseline.json.").option("-o, --output <output>", "Specify the output file path").option("-i, --input <input>", "Specify the input file path").action(async (_, options) => {
   const currentDir = process.cwd();
