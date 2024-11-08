@@ -13,7 +13,7 @@ export const runESLintBatch = (filesBatch:string[], verbose?:boolean) => {
 
   return new Promise(resolve => {
     exec(`npx eslint ${filesBatch.join(' ')} -f json`, { maxBuffer: 1024 * 5000 }, (error:unknown, stdout:string, stderr:unknown) => {
-      if (stderr) console.warn('ESLint warnings:', stderr);
+        if (stderr) console.warn('ESLint warnings:', stderr);
 
       try {
         const batchIssues:object = JSON.parse(stdout);

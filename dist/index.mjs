@@ -6,7 +6,7 @@ import { Command } from "commander";
 // package.json
 var package_default = {
   name: "lint-shred",
-  version: "1.0.7",
+  version: "1.0.8",
   description: "Prevent a codebase that has not previously adhered to ESLint issues, from getting worse.",
   main: "./dist/index.js",
   module: "./dist/index.mjs",
